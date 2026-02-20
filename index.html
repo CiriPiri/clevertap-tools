@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campaign JSON → Email Table</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: #0d0f14;
+    color: #e0e2ea;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 28px 40px;
+    border-bottom: 1px solid #1e2330;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+  }
+
+  header span {
+    font-size: 11px;
+    color: #4a5568;
+    letter-spacing: 1px;
+  }
+
+  .main {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    min-height: calc(100vh - 73px);
+  }
+
+  /* LEFT PANEL */
+  .left {
+    border-right: 1px solid #1e2330;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  label {
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    color: #4a5568;
+    text-transform: uppercase;
+  }
+
+  textarea {
+    width: 100%;
+    flex: 1;
+    min-height: 420px;
+    background: #12151c;
+    border: 1px solid #1e2330;
+    border-radius: 8px;
+    color: #a0aec0;
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px;
+    padding: 16px;
+    resize: vertical;
+    line-height: 1.6;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus { border-color: #00e5a0; }
+
+  textarea::placeholder { color: #2a3040; }
+
+  .btn-generate {
+    background: #00e5a0;
+    color: #0a0c10;
+    border: none;
+    border-radius: 8px;
+    padding: 13px 20px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-generate:hover { opacity: 0.88; }
+  .btn-generate:active { transform: scale(0.98); }
+
+  .error {
+    background: #2a1010;
+    border: 1px solid #5a1a1a;
+    border-radius: 6px;
+    color: #ff6b6b;
+    font-size: 11px;
+    padding: 10px 14px;
+    display: none;
+  }
+
+  /* RIGHT PANEL */
+  .right {
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .right-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .right-header-label {
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    color: #4a5568;
+    text-transform: uppercase;
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-copy {
+    background: transparent;
+    border: 1px solid #00e5a0;
+    color: #00e5a0;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-copy:hover { background: rgba(0,229,160,0.1); }
+  .btn-copy.copied { border-color: #7b61ff; color: #7b61ff; }
+
+  .btn-download {
+    background: transparent;
+    border: 1px solid #2a3040;
+    color: #8892a4;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-download:hover { background: rgba(255,255,255,0.04); }
+
+  /* Preview box */
+  .preview-box {
+    background: #fff;
+    border-radius: 10px;
+    padding: 24px;
+    overflow-x: auto;
+    min-height: 300px;
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .placeholder-msg {
+    margin: auto;
+    text-align: center;
+    color: #ccc;
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .placeholder-msg span {
+    display: block;
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  /* EMAIL TABLE STYLES (inside preview) */
+  #email-table-wrap { width: 100%; }
+
+  #email-table-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #d0d5dd;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #1a1a1a;
+  }
+
+  #email-table-wrap thead tr {
+    background-color: #1a1a2e;
+    color: #ffffff;
+  }
+
+  #email-table-wrap th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    border-right: 1px solid #2e2e4e;
+    white-space: nowrap;
+  }
+
+  #email-table-wrap tbody tr:nth-child(even) { background: #f9fafb; }
+  #email-table-wrap tbody tr:nth-child(odd)  { background: #ffffff; }
+
+  #email-table-wrap td {
+    padding: 9px 14px;
+    border-bottom: 1px solid #e4e7ec;
+    border-right: 1px solid #e4e7ec;
+    vertical-align: middle;
+  }
+
+  #email-table-wrap .report-name { font-weight: 600; }
+  #email-table-wrap .num { text-align: center; }
+  #email-table-wrap .sent { color: #16a34a; font-weight: 600; }
+  #email-table-wrap .badge {
+    background: #dcfce7;
+    color: #166534;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    display: inline-block;
+  }
+
+  #email-table-wrap .meta-note {
+    margin-top: 12px;
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    color: #999;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    background: #12151c;
+    border: 1px solid #1e2330;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 11px;
+  }
+
+  .stat-card .val {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #00e5a0;
+  }
+
+  .stat-card .lbl { color: #4a5568; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📋 Campaign JSON → Email Table</h1>
+  <span>IIFL SECURITIES · CAMPAIGN REPORTING TOOL</span>
+</header>
+
+<div class="main">
+
+  <!-- LEFT: Input -->
+  <div class="left">
+    <label>Paste your JSON array below</label>
+    <textarea id="json-input" placeholder='[
+  {
+    "_id": 1719992868199,
+    "f": "July 2 report",
+    "campaigninfo": { ... },
+    "cr_status": 2,
+    "report_sent": true,
+    ...
+  }
+]'></textarea>
+    <div class="error" id="error-box">⚠ Invalid JSON. Please check your input.</div>
+    <button class="btn-generate" onclick="generateTable()">Generate Email Table →</button>
+  </div>
+
+  <!-- RIGHT: Output -->
+  <div class="right">
+
+    <div class="stats-bar" id="stats-bar" style="display:none !important;"></div>
+
+    <div class="right-header">
+      <span class="right-header-label">Email Table Preview</span>
+      <div class="actions" id="action-btns" style="display:none;">
+        <button class="btn-copy" id="copy-btn" onclick="copyTable()">📋 Copy for Email</button>
+        <button class="btn-download" onclick="downloadHTML()">⬇ Download HTML</button>
+      </div>
+    </div>
+
+    <div class="preview-box" id="preview-box">
+      <div class="placeholder-msg">
+        <span>📊</span>
+        Paste your JSON on the left<br>and click <strong>Generate</strong>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let lastHTML = '';
+
+  function formatDate(raw) {
+    if (!raw) return '—';
+    const s = String(raw);
+    if (s.length === 8) {
+      const y = s.slice(0,4), m = s.slice(4,6), d = s.slice(6,8);
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+    }
+    return raw;
+  }
+
+  function getStatus(code) {
+    const map = { 0: 'Pending', 1: 'Processing', 2: 'Completed', 3: 'Failed' };
+    return map[code] || 'Unknown';
+  }
+
+  function generateTable() {
+    const raw = document.getElementById('json-input').value.trim();
+    const errBox = document.getElementById('error-box');
+    errBox.style.display = 'none';
+
+    let data;
+    try { data = JSON.parse(raw); } catch(e) {
+      errBox.style.display = 'block';
+      return;
+    }
+    if (!Array.isArray(data)) { data = [data]; }
+
+    // Sort by date ascending
+    data.sort((a,b) => {
+      const aDate = a.campaigninfo?.createddatetime?.from || 0;
+      const bDate = b.campaigninfo?.createddatetime?.from || 0;
+      return aDate - bDate;
+    });
+
+    const totalCampaigns = data.reduce((s,r) => s + Object.keys(r.campaigninfo?.targetList || {}).length, 0);
+    const totalQueries   = data.reduce((s,r) => s + (r.o_queries?.length || 0), 0);
+    const allSent        = data.every(r => r.report_sent);
+
+    // Stats bar
+    const statsBar = document.getElementById('stats-bar');
+    statsBar.style.cssText = 'display:flex; gap:16px; flex-wrap:wrap;';
+    statsBar.innerHTML = `
+      <div class="stat-card"><div class="val">${data.length}</div><div class="lbl">Reports</div></div>
+      <div class="stat-card"><div class="val">${totalCampaigns}</div><div class="lbl">Total Campaigns</div></div>
+      <div class="stat-card"><div class="val">${totalQueries}</div><div class="lbl">Total Queries</div></div>
+      <div class="stat-card"><div class="val" style="color:${allSent?'#00e5a0':'#ff6b6b'}">${allSent?'All':'Some'}</div><div class="lbl">Report Sent</div></div>
+    `;
+
+    // Build email HTML
+    let rows = '';
+    data.forEach((r, i) => {
+      const name       = r.f || '—';
+      const fromDate   = formatDate(r.campaigninfo?.createddatetime?.from);
+      const toDate     = formatDate(r.campaigninfo?.createddatetime?.to);
+      const dateRange  = fromDate === toDate ? fromDate : `${fromDate} – ${toDate}`;
+      const campaigns  = Object.keys(r.campaigninfo?.targetList || {}).length;
+      const queries    = r.o_queries?.length || 0;
+      const convEvent  = r.conv_event || '—';
+      const convProp   = r.conv_prop  || '—';
+      const sent       = r.report_sent ? '✓ Yes' : '✗ No';
+      const sentColor  = r.report_sent ? '#16a34a' : '#dc2626';
+      const status     = getStatus(r.cr_status);
+      const statusBg   = r.cr_status === 2 ? '#dcfce7' : r.cr_status === 3 ? '#fee2e2' : '#fef9c3';
+      const statusCol  = r.cr_status === 2 ? '#166534' : r.cr_status === 3 ? '#991b1b' : '#854d0e';
+      const rowBg      = i % 2 === 0 ? '#ffffff' : '#f9fafb';
+
+      rows += `
+      <tr style="background:${rowBg};">
+        <td style="padding:9px 14px;border-bottom:1px solid #e4e7ec;border-right:1px solid #e4e7ec;color:#888;font-family:Arial,sans-serif;font-size:13px;">${i+1}</td>
+        <td style="padding:9px 14px;border-bottom:1px solid #e4e7ec;border-right:1px solid #e4e7ec;font-weight:600;font-family:Arial,sans-serif;font-size:13px;">${name}</td>
+        <td style="padding:9px 14px;border-bottom:1px solid #e4e7ec;border-right:1px solid #e4e7ec;font-family:Arial,sans-serif;font-size:13px;white-space:nowrap;">${dateRange}</td>
+        <td style="padding:9px 14px;border-bottom:1px solid #e4e7ec;border-right:1px solid #e4e7ec;text-align:center;font-family:Arial,sans-serif;font-size:13px;">${campaigns}</td>
+        <td style="padding:9px 14px;border-bottom:1px solid #e4e7ec;border-right:1px solid #e4e7ec;text-align:center;font-family:Arial,sans-serif;font-size:13px;">${queries}</td>
+        <td style="padding:9px 14px;border-bottom:1px solid #e4e7ec;border-right:1px solid #e4e7ec;font-family:Arial,sans-serif;font-size:13px;">${convEvent} / ${convProp}</td>
+        <td style="padding:9px 14px;border-bottom:1px solid #e4e7ec;border-right:1px solid #e4e7ec;color:${sentColor};font-weight:600;font-family:Arial,sans-serif;font-size:13px;">${sent}</td>
+        <td style="padding:9px 14px;border-bottom:1px solid #e4e7ec;font-family:Arial,sans-serif;font-size:13px;"><span style="background:${statusBg};color:${statusCol};padding:2px 8px;border-radius:4px;font-size:11px;">${status}</span></td>
+      </tr>`;
+    });
+
+    // Detect shared report settings
+    const sample = data[0]?.campaigninfo?.report || {};
+    const flags = [
+      sample.quickStats        ? 'Quick Stats ✓'         : null,
+      sample.detailedStats     ? 'Detailed Stats ✓'      : null,
+      sample.campaignMetaStats ? 'Campaign Meta Stats ✓' : null,
+      sample.errorStats        ? null : 'Error Stats ✗',
+      'Split by OS/Variant/Day: Off',
+    ].filter(Boolean).join(' &nbsp;|&nbsp; ');
+
+    const tableHTML = `
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border:1px solid #d0d5dd;font-family:Arial,sans-serif;font-size:13px;color:#1a1a1a;">
+  <thead>
+    <tr style="background-color:#1a1a2e;color:#ffffff;">
+      <th style="padding:10px 14px;text-align:left;font-size:11px;letter-spacing:0.5px;border-right:1px solid #2e2e4e;">#</th>
+      <th style="padding:10px 14px;text-align:left;font-size:11px;letter-spacing:0.5px;border-right:1px solid #2e2e4e;">Report Name</th>
+      <th style="padding:10px 14px;text-align:left;font-size:11px;letter-spacing:0.5px;border-right:1px solid #2e2e4e;">Date Range</th>
+      <th style="padding:10px 14px;text-align:left;font-size:11px;letter-spacing:0.5px;border-right:1px solid #2e2e4e;">Campaigns</th>
+      <th style="padding:10px 14px;text-align:left;font-size:11px;letter-spacing:0.5px;border-right:1px solid #2e2e4e;">Queries</th>
+      <th style="padding:10px 14px;text-align:left;font-size:11px;letter-spacing:0.5px;border-right:1px solid #2e2e4e;">Conv. Event</th>
+      <th style="padding:10px 14px;text-align:left;font-size:11px;letter-spacing:0.5px;border-right:1px solid #2e2e4e;">Sent</th>
+      <th style="padding:10px 14px;text-align:left;font-size:11px;letter-spacing:0.5px;">Status</th>
+    </tr>
+  </thead>
+  <tbody>${rows}</tbody>
+</table>
+<p style="margin-top:12px;font-family:Arial,sans-serif;font-size:11px;color:#999;">${flags}</p>`;
+
+    lastHTML = tableHTML;
+
+    document.getElementById('preview-box').innerHTML = `<div id="email-table-wrap">${tableHTML}</div>`;
+    document.getElementById('action-btns').style.display = 'flex';
+  }
+
+  async function copyTable() {
+    if (!lastHTML) return;
+    const btn = document.getElementById('copy-btn');
+    try {
+      // Copy as rich HTML so it pastes correctly into Outlook/Gmail
+      const blob = new Blob([lastHTML], { type: 'text/html' });
+      const item = new ClipboardItem({ 'text/html': blob });
+      await navigator.clipboard.write([item]);
+      btn.textContent = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '📋 Copy for Email'; btn.classList.remove('copied'); }, 2500);
+    } catch(e) {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = lastHTML;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = '✓ Copied (HTML)';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '📋 Copy for Email'; btn.classList.remove('copied'); }, 2500);
+    }
+  }
+
+  function downloadHTML() {
+    if (!lastHTML) return;
+    const full = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;padding:24px;">${lastHTML}</body></html>`;
+    const a = document.createElement('a');
+    a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(full);
+    a.download = 'campaign_report_table.html';
+    a.click();
+  }
+</script>
+
+</body>
+</html>
