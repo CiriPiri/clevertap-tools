@@ -14,6 +14,11 @@ export const tableColumns: ColumnDef[] = [
     emailStyle: { color: '#888', textAlign: 'center' }
   },
   {
+    header: 'Export ID',
+    accessor: (row) => row._id || '—',
+    emailStyle: { fontFamily: 'monospace', color: '#52525b', fontSize: '12px' }
+  },
+  {
     header: 'Report Name',
     accessor: (row) => row.f || '—',
     emailStyle: { fontWeight: 'bold' }
