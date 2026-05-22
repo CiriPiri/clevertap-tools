@@ -1,64 +1,53 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Database, ClipboardCopy, CheckCircle2 } from "lucide-react";
-import type { CleverTapReport } from "../../types/clevertap";
-import type { ColumnDef } from "../../config/tableColumns";
-import { copyRichTableToClipboard } from "../../utils/clipboard";
+import { motion } from "framer-motion";
+import { NavLink } from "react-router-dom";
+import { tools } from "../../config/tools";
+import { ThemeToggle } from "./ThemeToggle";
+import { BrandMark } from "./BrandMark";
 
-interface HeaderProps {
-  parsedData: CleverTapReport[] | null;
-  activeColumns: ColumnDef[];
-}
-
-export const Header = ({ parsedData, activeColumns }: HeaderProps) => {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    if (!parsedData) return;
-    await copyRichTableToClipboard(parsedData, activeColumns);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
-  };
-
+export const Header = () => {
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-10 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 px-8 py-5 flex justify-between items-center"
+      className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80 transition-colors duration-500"
     >
-      <div className="flex items-center gap-3">
-        <div className="bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
-          <Database className="text-emerald-400 w-5 h-5" />
-        </div>
-        <h1 className="text-lg font-semibold text-zinc-100 tracking-tight">
-          CleverTap{" "}
-          <span className="text-zinc-500 font-normal">JSON Formatter</span>
-        </h1>
-      </div>
+      <div
+        aria-hidden
+        className="header-gradient absolute inset-0 -z-10 opacity-30 dark:opacity-40 bg-linear-to-r from-indigo-200 via-violet-200 to-sky-200 dark:from-indigo-500/20 dark:via-violet-500/15 dark:to-emerald-500/10"
+      />
+      <div className="max-w-400 mx-auto px-8 py-5 flex justify-between items-center gap-4">
+        <NavLink to="/" className="flex items-center gap-3 shrink-0 group">
+          <BrandMark size={32} className="drop-shadow-sm transition-transform duration-300 group-hover:rotate-3" />
+          <h1 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+            CleverTap{" "}
+            <span className="font-normal text-zinc-500 dark:text-zinc-500">
+              Toolbox
+            </span>
+          </h1>
+        </NavLink>
 
-      <AnimatePresence mode="wait">
-        {parsedData && (
-          <motion.button
-            key={copied ? "copied" : "copy"}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            onClick={handleCopy}
-            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-full transition-all duration-300 ${
-              copied
-                ? "bg-emerald-500 text-zinc-950 shadow-[0_0_20px_rgba(16,185,129,0.4)]"
-                : "bg-zinc-100 text-zinc-900 hover:bg-white hover:scale-105 shadow-sm"
-            }`}
-          >
-            {copied ? (
-              <CheckCircle2 className="w-4 h-4" />
-            ) : (
-              <ClipboardCopy className="w-4 h-4" />
-            )}
-            {copied ? "Copied to Clipboard" : "Copy Email Table"}
-          </motion.button>
-        )}
-      </AnimatePresence>
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <nav className="flex items-center gap-1">
+            {tools.map((tool) => (
+              <NavLink
+                key={tool.slug}
+                to={`/${tool.slug}`}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                    isActive
+                      ? "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30"
+                      : "bg-transparent border-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-200"
+                  }`
+                }
+              >
+                <tool.icon className="w-3.5 h-3.5" />
+                {tool.name}
+              </NavLink>
+            ))}
+          </nav>
+          <ThemeToggle />
+        </div>
+      </div>
     </motion.header>
   );
 };

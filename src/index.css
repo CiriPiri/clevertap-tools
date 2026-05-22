@@ -1,7 +1,31 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+html,
 body {
+  min-height: 100vh;
+  transition:
+    background-color 500ms ease,
+    color 500ms ease;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.dark body {
   background-color: #0d0f14;
   color: #e2e8f0;
-  min-height: 100vh;
+}
+
+@keyframes header-gradient-drift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.header-gradient {
+  background-size: 200% 200%;
+  animation: header-gradient-drift 18s ease-in-out infinite;
 }
