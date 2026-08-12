@@ -1,31 +1,150 @@
+/* Self-hosted variable fonts. Vite fingerprints and bundles the woff2 files,
+   so there is no external request at runtime — the client-side-only promise
+   holds, and there is no flash of unstyled text. */
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ------------------------------------------------------------------ */
+/* Design tokens                                                       */
+/* ------------------------------------------------------------------ */
+
+@theme {
+  /* Inter for UI, JetBrains Mono for payloads and decoded output. */
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo,
+    Consolas, "Liberation Mono", monospace;
+
+  /* Single accent ramp. Indigo reads as "tool", not "brand shout". */
+  --color-accent-50: oklch(0.962 0.018 272);
+  --color-accent-100: oklch(0.93 0.034 272);
+  --color-accent-200: oklch(0.87 0.06 272);
+  --color-accent-300: oklch(0.785 0.094 272);
+  --color-accent-400: oklch(0.885 0.135 272);
+  --color-accent-500: oklch(0.585 0.174 272);
+  --color-accent-600: oklch(0.515 0.19 272);
+  --color-accent-700: oklch(0.455 0.17 272);
+
+  /* Motion: one duration scale, one easing. Every transition in the app
+     references these so nothing feels out of step. */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 html,
 body {
   min-height: 100vh;
-  transition:
-    background-color 500ms ease,
-    color 500ms ease;
 }
 
 body {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: #fbfbfc;
+  color: #18181b;
+  font-family: var(--font-sans);
+  /* Inter's defaults: contextual alternates + tabular figures everywhere
+     numbers appear in tables, so columns don't jitter as values change. */
+  font-feature-settings: "cv02", "cv03", "cv04", "calt";
 }
 
 .dark body {
-  background-color: #0d0f14;
-  color: #e2e8f0;
+  background-color: #09090b;
+  color: #e4e4e7;
 }
 
-@keyframes header-gradient-drift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+/* Numeric columns must not reflow while typing. */
+.tabular,
+table td,
+table th {
+  font-variant-numeric: tabular-nums;
 }
 
-.header-gradient {
-  background-size: 200% 200%;
-  animation: header-gradient-drift 18s ease-in-out infinite;
+/* ------------------------------------------------------------------ */
+/* Entrance animations                                                 */
+/* ------------------------------------------------------------------ */
+
+/* Content entrances are CSS, not JS. The element's resting state is
+   VISIBLE and the animation only plays backwards from a hidden start, so
+   if the animation never runs — script error, reduced motion, a stalled
+   main thread — the content is still on screen. A JS-driven fade that
+   starts at opacity:0 fails the opposite way: it leaves the page blank. */
+@keyframes enter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.enter {
+  animation: enter-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* Stagger helpers — delay without a per-element style attribute. */
+.enter-d1 { animation-delay: 60ms; }
+.enter-d2 { animation-delay: 120ms; }
+.enter-d3 { animation-delay: 180ms; }
+.enter-d4 { animation-delay: 240ms; }
+.enter-d5 { animation-delay: 300ms; }
+
+/* Respect the OS reduced-motion setting — kills transforms and loops but
+   keeps opacity so state changes are still perceivable. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Consistent focus ring across every interactive element. */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent-500);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Quieter scrollbars — the default macOS/Windows bars fight the dark theme. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(212 212 216) transparent;
+}
+.dark * {
+  scrollbar-color: rgb(63 63 70) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: rgb(212 212 216);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.dark *::-webkit-scrollbar-thumb {
+  background-color: rgb(63 63 70);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(161 161 170);
 }

@@ -1,43 +1,71 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Database } from "lucide-react";
+import { Table2 } from "lucide-react";
 import type { CleverTapReport } from "../../types/clevertap";
 import type { ColumnDef } from "../../config/tableColumns";
 
 interface PreviewTableProps {
   data: CleverTapReport[] | null;
   activeColumns: ColumnDef[];
+  /** Raw text preview (slack/markdown flavours) — shown instead of the grid. */
+  textPreview?: string | null;
 }
 
-export const PreviewTable = ({ data, activeColumns }: PreviewTableProps) => (
-  <div className="rounded-2xl overflow-hidden shadow-sm relative min-h-[calc(100vh-250px)] border bg-white border-zinc-200 dark:bg-zinc-900/30 dark:border-zinc-800/50 dark:shadow-2xl">
+const EmptyState = () => (
+  <motion.div
+    key="empty"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center"
+  >
+    <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-zinc-50 border-zinc-200 dark:bg-zinc-800/40 dark:border-zinc-700/50">
+      <Table2 className="w-5 h-5 text-zinc-400 dark:text-zinc-600" />
+    </div>
+    <div>
+      <p className="text-[13px] font-medium text-zinc-700 dark:text-zinc-300">
+        No table yet
+      </p>
+      <p className="text-[12px] mt-0.5 text-zinc-500 dark:text-zinc-600">
+        Paste a CleverTap JSON payload to build one.
+      </p>
+    </div>
+  </motion.div>
+);
+
+export const PreviewTable = ({
+  data,
+  activeColumns,
+  textPreview,
+}: PreviewTableProps) => (
+  <div className="relative flex-1 min-h-0 rounded-xl border overflow-hidden bg-white border-zinc-200 dark:bg-zinc-900/40 dark:border-zinc-800">
     <AnimatePresence mode="wait">
-      {!data ? (
-        <motion.div
-          key="empty"
+      {!data || !data.length ? (
+        <EmptyState />
+      ) : textPreview ? (
+        <motion.pre
+          key="text"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 flex flex-col items-center justify-center gap-5 text-zinc-500 dark:text-zinc-600"
+          className="absolute inset-0 overflow-auto p-4 text-[12px] leading-[1.6] font-mono whitespace-pre text-zinc-700 dark:text-zinc-300"
         >
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center border bg-zinc-100 border-zinc-200 dark:bg-zinc-800/50 dark:border-zinc-700/50">
-            <Database className="w-8 h-8 text-zinc-400 dark:text-zinc-500" />
-          </div>
-          <p className="text-sm font-medium">Awaiting valid JSON array</p>
-        </motion.div>
+          {textPreview}
+        </motion.pre>
       ) : (
         <motion.div
-          key="table"
+          key="grid"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="overflow-x-auto p-1"
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 overflow-auto"
         >
-          <table className="w-full text-left border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-zinc-200 dark:border-zinc-800/80">
-                {activeColumns.map((col, i) => (
+          <table className="w-full text-left border-collapse text-[13px]">
+            <thead className="sticky top-0 z-10">
+              <tr className="bg-zinc-50/95 backdrop-blur dark:bg-zinc-900/95">
+                {activeColumns.map((col) => (
                   <th
-                    key={i}
-                    className="py-4 px-6 text-xs font-semibold uppercase tracking-wider whitespace-nowrap text-zinc-500 dark:text-zinc-500"
+                    key={col.header}
+                    className="py-2.5 px-4 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap border-b text-zinc-500 border-zinc-200 dark:text-zinc-500 dark:border-zinc-800"
                   >
                     {col.header}
                   </th>
@@ -46,22 +74,19 @@ export const PreviewTable = ({ data, activeColumns }: PreviewTableProps) => (
             </thead>
             <tbody>
               {data.map((row, rowIndex) => (
-                <motion.tr
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: rowIndex * 0.05 }}
-                  key={row._id}
-                  className="border-b transition-colors group border-zinc-100 hover:bg-zinc-50 dark:border-zinc-800/30 dark:hover:bg-zinc-800/20"
+                <tr
+                  key={row._id ?? rowIndex}
+                  className="border-b transition-colors border-zinc-100 hover:bg-zinc-50 dark:border-zinc-800/50 dark:hover:bg-zinc-800/30"
                 >
-                  {activeColumns.map((col, colIndex) => (
+                  {activeColumns.map((col) => (
                     <td
-                      key={colIndex}
-                      className="py-4 px-6 whitespace-nowrap transition-colors text-zinc-700 group-hover:text-zinc-900 dark:text-zinc-300 dark:group-hover:text-zinc-100"
+                      key={col.header}
+                      className="py-2.5 px-4 whitespace-nowrap text-zinc-700 dark:text-zinc-300"
                     >
                       {col.accessor(row, rowIndex)}
                     </td>
                   ))}
-                </motion.tr>
+                </tr>
               ))}
             </tbody>
           </table>

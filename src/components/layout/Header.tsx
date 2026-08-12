@@ -1,53 +1,61 @@
-import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
+import { motion } from "framer-motion";
 import { tools } from "../../config/tools";
 import { ThemeToggle } from "./ThemeToggle";
 import { BrandMark } from "./BrandMark";
 
-export const Header = () => {
-  return (
-    <motion.header
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80 transition-colors duration-500"
-    >
-      <div
-        aria-hidden
-        className="header-gradient absolute inset-0 -z-10 opacity-30 dark:opacity-40 bg-linear-to-r from-indigo-200 via-violet-200 to-sky-200 dark:from-indigo-500/20 dark:via-violet-500/15 dark:to-emerald-500/10"
-      />
-      <div className="max-w-400 mx-auto px-8 py-5 flex justify-between items-center gap-4">
-        <NavLink to="/" className="flex items-center gap-3 shrink-0 group">
-          <BrandMark size={32} className="drop-shadow-sm transition-transform duration-300 group-hover:rotate-3" />
-          <h1 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-            CleverTap{" "}
-            <span className="font-normal text-zinc-500 dark:text-zinc-500">
-              Toolbox
-            </span>
-          </h1>
-        </NavLink>
+export const Header = () => (
+  <header className="sticky top-0 z-20 border-b bg-white/85 border-zinc-200 backdrop-blur-xl dark:bg-zinc-950/85 dark:border-zinc-800/80">
+    <div className="max-w-360 mx-auto px-6 h-14 flex items-center justify-between gap-4">
+      <NavLink to="/" className="flex items-center gap-2.5 shrink-0 group">
+        <BrandMark size={24} />
+        <span className="text-[14px] font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+          CleverTap{" "}
+          <span className="font-normal text-zinc-400 dark:text-zinc-500">
+            Toolbox
+          </span>
+        </span>
+      </NavLink>
 
-        <div className="flex items-center gap-2 flex-wrap justify-end">
-          <nav className="flex items-center gap-1">
-            {tools.map((tool) => (
-              <NavLink
-                key={tool.slug}
-                to={`/${tool.slug}`}
-                className={({ isActive }) =>
-                  `flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
-                    isActive
-                      ? "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30"
-                      : "bg-transparent border-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-200"
-                  }`
-                }
-              >
-                <tool.icon className="w-3.5 h-3.5" />
-                {tool.name}
-              </NavLink>
-            ))}
-          </nav>
-          <ThemeToggle />
-        </div>
+      <div className="flex items-center gap-1">
+        <nav className="hidden sm:flex items-center gap-0.5">
+          {tools.map((tool) => (
+            <NavLink
+              key={tool.slug}
+              to={`/${tool.slug}`}
+              className={({ isActive }) =>
+                `relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12.5px] font-medium transition-colors ${
+                  isActive
+                    ? "text-zinc-900 dark:text-zinc-100"
+                    : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  {/* Shared layout id makes the active pill glide between
+                      items rather than blink on/off. */}
+                  {isActive && (
+                    <motion.span
+                      layoutId="nav-active"
+                      transition={{
+                        type: "spring",
+                        stiffness: 380,
+                        damping: 32,
+                      }}
+                      className="absolute inset-0 rounded-lg bg-zinc-100 dark:bg-zinc-800"
+                    />
+                  )}
+                  <tool.icon className="relative w-3.5 h-3.5" />
+                  <span className="relative">{tool.name}</span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="w-px h-5 mx-1 bg-zinc-200 dark:bg-zinc-800" />
+        <ThemeToggle />
       </div>
-    </motion.header>
-  );
-};
+    </div>
+  </header>
+);

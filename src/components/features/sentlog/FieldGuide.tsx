@@ -29,19 +29,19 @@ export const FieldGuide = () => {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="rounded-2xl border bg-white border-zinc-200 dark:bg-zinc-900/50 dark:border-zinc-800 overflow-hidden">
+    <div className="rounded-xl border bg-white border-zinc-200 dark:bg-zinc-900/40 dark:border-zinc-800 overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+        className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
       >
-        <div className="flex items-center gap-2">
-          <Info className="w-4 h-4 text-indigo-600 dark:text-indigo-300" />
-          <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+        <div className="flex items-center gap-2 min-w-0">
+          <Info className="w-3.5 h-3.5 shrink-0 text-zinc-400 dark:text-zinc-500" />
+          <span className="text-[13px] font-medium text-zinc-800 dark:text-zinc-200">
             What do these fields mean?
           </span>
-          <span className="text-xs text-zinc-500 dark:text-zinc-500 hidden sm:inline">
+          <span className="text-[12px] text-zinc-500 dark:text-zinc-500 hidden sm:inline truncate">
             Defaults like “delivered” are hidden in the output.
           </span>
         </div>
@@ -70,7 +70,7 @@ export const FieldGuide = () => {
             </div>
             <div className="px-4 pb-4 text-[12px] text-zinc-500 dark:text-zinc-400">
               Values inside the string are split by the ASCII record separator{" "}
-              <code className="font-mono px-1 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800"></code>{" "}
+              <code className="font-mono px-1 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800">{"\\u001e"}</code>{" "}
               (0x1E). Literal escapes and real 0x1E characters both work.
             </div>
           </motion.div>
@@ -89,7 +89,7 @@ const FieldList = ({ title, rows }: { title: string; rows: FieldRow[] }) => (
       {rows.map((r) => (
         <li
           key={r.label}
-          className="flex flex-col gap-0.5 pl-2 border-l-2 border-indigo-200 dark:border-indigo-500/30"
+          className="flex flex-col gap-0.5 pl-2 border-l-2 border-zinc-200 dark:border-zinc-700"
         >
           <div className="flex items-baseline gap-2 flex-wrap">
             <span className="font-medium text-zinc-800 dark:text-zinc-200">

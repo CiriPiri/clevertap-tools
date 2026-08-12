@@ -40,18 +40,17 @@ export const ResultCard = ({ entry, index }: ResultCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -6 }}
       transition={{ delay, duration: 0.22, ease: "easeOut" }}
-      whileHover={{ y: -1 }}
-      className="group rounded-xl border border-zinc-200 bg-white shadow-sm hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/60 dark:shadow-none transition-shadow"
+      className="group rounded-xl border overflow-hidden transition-colors border-zinc-200 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-zinc-700"
     >
       <header className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2 flex-wrap min-w-0">
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-medium bg-accent-50 text-accent-700 border-accent-200 dark:bg-accent-500/15 dark:text-accent-300 dark:border-accent-500/30">
             {entry.event || "Unknown"}
           </span>
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-medium bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700">
             {entry.platformDisplay || "—"}
           </span>
-          <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono truncate">
+          <span className="text-[11px] text-zinc-500 dark:text-zinc-500 font-mono truncate">
             #{entry.campaignId || "—"} · {entry.dateFormatted}
           </span>
         </div>
@@ -61,7 +60,7 @@ export const ResultCard = ({ entry, index }: ResultCardProps) => {
           onClick={handleCopy}
           aria-label="Copy this entry"
           title="Copy this entry"
-          className="relative shrink-0 flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium border transition-colors bg-white text-zinc-700 border-zinc-200 hover:border-indigo-400 hover:text-indigo-600 dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300"
+          className="relative shrink-0 flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
         >
           <motion.span
             animate={copied ? { scale: [1, 1.15, 1] } : { scale: 1 }}
